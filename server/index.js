@@ -46,6 +46,21 @@ const stripe = stripeSecretKey ? new Stripe(stripeSecretKey) : null
 
 app.use(express.json())
 
+app.use((req, res, next) => {
+  const start = Date.now()
+
+  res.on('finish', () => {
+    if (req.path.startsWith('/assets/') || req.path === '/favicon.png') {
+      return
+    }
+
+    const durationMs = Date.now() - start
+    console.log(`[traffic] ${req.method} ${req.path} ${res.statusCode} ${durationMs}ms`)
+  })
+
+  next()
+})
+
 function getTemplate(templateId) {
   return templates.find((template) => template.id === templateId)
 }
