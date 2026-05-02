@@ -41,7 +41,7 @@
 
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 420px);
+  grid-template-columns: minmax(0, 0.9fr) minmax(360px, 0.7fr);
   gap: 48px;
   align-items: center;
   padding: 70px clamp(18px, 6vw, 88px) 42px;
@@ -105,7 +105,7 @@ h2 {
 
 .hero-preview {
   display: grid;
-  min-height: 320px;
+  min-height: 360px;
   place-items: center;
   border: 1px solid #ded7ca;
   border-radius: 8px;
@@ -124,107 +124,39 @@ h2 {
   box-shadow: 0 24px 70px rgba(28, 23, 18, 0.12);
 }
 
-.pixel-stage {
+.hero-sprite-stage {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: center;
+  justify-items: center;
+  width: min(100%, 360px);
+}
+
+.hero-octopus-pair,
+.octopus-stills {
   display: flex;
-  align-items: end;
+  align-items: center;
   justify-content: center;
-  gap: 34px;
-  transform: scale(1.2);
+  gap: 14px;
 }
 
-.sandorm-sprite,
-.jar-sprite {
-  position: relative;
+.atlas-frame {
+  width: 192px;
+  height: 208px;
+  flex: 0 0 auto;
+  background-repeat: no-repeat;
+  background-size: 1536px 1872px;
   image-rendering: pixelated;
-}
-
-.sandorm-sprite {
-  width: 74px;
-  height: 108px;
-  border: 4px solid #191919;
-  border-radius: 40px 40px 18px 18px;
-  background:
-    radial-gradient(circle at 26px 42px, #111 0 3px, transparent 4px),
-    radial-gradient(circle at 48px 42px, #111 0 3px, transparent 4px),
-    linear-gradient(#d9b35d 0 58%, #f4e2a1 58%);
-  box-shadow:
-    -18px 64px 0 -7px #191919,
-    18px 64px 0 -7px #191919,
-    0 18px 0 #f0c56b inset;
-}
-
-.sandorm-sprite::before,
-.sandorm-sprite::after {
-  position: absolute;
-  content: "";
-  background: #191919;
-}
-
-.sandorm-sprite::before {
-  width: 18px;
-  height: 4px;
-  left: 28px;
-  top: 58px;
-}
-
-.sandorm-sprite::after {
-  width: 20px;
-  height: 24px;
-  right: -20px;
-  top: 56px;
-  border-radius: 0 12px 12px 0;
-}
-
-.jar-sprite {
-  width: 82px;
-  height: 104px;
-  border: 4px solid #17232a;
-  border-radius: 18px 18px 24px 24px;
-  background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.86) 0 14%, transparent 15%),
-    linear-gradient(#8ae0ff 0 18%, #51bbd4 19% 100%);
-  box-shadow:
-    0 -18px 0 -6px #17232a,
-    0 -24px 0 -8px #f7f4ec;
-}
-
-.jar-sprite span {
-  position: absolute;
-  left: 18px;
-  top: 42px;
-  width: 42px;
-  height: 34px;
-  border-radius: 50% 50% 42% 42%;
-  background:
-    radial-gradient(circle at 14px 13px, #111 0 3px, transparent 4px),
-    radial-gradient(circle at 28px 13px, #111 0 3px, transparent 4px),
-    #d65aa0;
-}
-
-.jar-sprite span::before,
-.jar-sprite span::after {
-  position: absolute;
-  bottom: -12px;
-  width: 8px;
-  height: 18px;
-  border-radius: 0 0 8px 8px;
-  background: #d65aa0;
-  content: "";
-}
-
-.jar-sprite span::before {
-  left: 8px;
-  box-shadow: 13px 0 0 #d65aa0;
-}
-
-.jar-sprite span::after {
-  right: 8px;
+  transform: scale(0.64);
+  transform-origin: center;
 }
 
 .gallery {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
   gap: 18px;
+  align-items: start;
   padding: 10px clamp(18px, 6vw, 88px) 72px;
 }
 
@@ -244,11 +176,191 @@ h2 {
 }
 
 .template-art.sandorm {
-  background: #fff4c7;
+  background: #f6ead0;
 }
 
 .template-art.octopus-jar {
   background: #dff7fb;
+}
+
+.template-card.sandorm .template-art {
+  padding: 18px;
+}
+
+.template-card.octopus-jar .template-art {
+  min-height: 360px;
+}
+
+.animation-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  width: 100%;
+}
+
+.animation-tile {
+  display: grid;
+  min-width: 0;
+  place-items: center;
+  border: 1px solid rgba(48, 37, 25, 0.12);
+  border-radius: 8px;
+  padding: 12px 10px 14px;
+  background:
+    linear-gradient(45deg, rgba(130, 111, 82, 0.13) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(130, 111, 82, 0.13) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(130, 111, 82, 0.13) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(130, 111, 82, 0.13) 75%),
+    #fffdf8;
+  background-position:
+    0 0,
+    0 9px,
+    9px -9px,
+    -9px 0;
+  background-size: 18px 18px;
+}
+
+.animation-tile .atlas-frame {
+  margin: -24px 0 -22px;
+  transform: scale(0.68);
+}
+
+.animation-tile div:last-child {
+  display: grid;
+  gap: 3px;
+  min-height: 38px;
+  text-align: center;
+}
+
+.animation-tile strong {
+  font-size: 13px;
+  line-height: 1.15;
+}
+
+.animation-tile span {
+  color: #655b4d;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.animation-tile:last-child {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: min(100%, 220px);
+}
+
+.octopus-preview {
+  display: grid;
+  width: min(100%, 360px);
+  min-height: 300px;
+  place-items: center;
+  border: 1px solid rgba(28, 52, 58, 0.12);
+  border-radius: 8px;
+  background:
+    linear-gradient(45deg, rgba(61, 119, 133, 0.1) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(61, 119, 133, 0.1) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(61, 119, 133, 0.1) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(61, 119, 133, 0.1) 75%),
+    #f8ffff;
+  background-position:
+    0 0,
+    0 12px,
+    12px -12px,
+    -12px 0;
+  background-size: 24px 24px;
+}
+
+.octopus-stills .atlas-frame {
+  margin: -22px;
+  transform: scale(0.82);
+}
+
+.hero-frame {
+  margin: -18px;
+  transform: scale(0.78);
+}
+
+.row-0 {
+  background-position-y: 0;
+}
+
+.row-1 {
+  background-position-y: -208px;
+}
+
+.row-2 {
+  background-position-y: -416px;
+}
+
+.row-3 {
+  background-position-y: -624px;
+}
+
+.row-4 {
+  background-position-y: -832px;
+}
+
+.row-5 {
+  background-position-y: -1040px;
+}
+
+.row-6 {
+  background-position-y: -1248px;
+}
+
+.row-7 {
+  background-position-y: -1456px;
+}
+
+.row-8 {
+  background-position-y: -1664px;
+}
+
+.col-0 {
+  background-position-x: 0;
+}
+
+.col-3 {
+  background-position-x: -576px;
+}
+
+.play-4 {
+  animation: play-4 1.1s steps(4) infinite;
+}
+
+.play-5 {
+  animation: play-5 1.25s steps(5) infinite;
+}
+
+.play-6 {
+  animation: play-6 1.45s steps(6) infinite;
+}
+
+.play-8 {
+  animation: play-8 1.15s steps(8) infinite;
+}
+
+@keyframes play-4 {
+  to {
+    background-position-x: -768px;
+  }
+}
+
+@keyframes play-5 {
+  to {
+    background-position-x: -960px;
+  }
+}
+
+@keyframes play-6 {
+  to {
+    background-position-x: -1152px;
+  }
+}
+
+@keyframes play-8 {
+  to {
+    background-position-x: -1536px;
+  }
 }
 
 .template-copy {

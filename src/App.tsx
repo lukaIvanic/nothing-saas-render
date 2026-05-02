@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import octopusSheet from './assets/oracle-octopus-jar-spritesheet.webp'
+import sandwormSheet from './assets/sandworm-larva-spritesheet.webp'
 import './App.css'
 
 type ConfigState = {
@@ -24,6 +26,18 @@ type PurchasedTemplate = {
   price: string
   fileReady: boolean
 }
+
+const sandwormAnimations = [
+  ['Idle', 'idle breathing loop', 'row-0', 'play-6'],
+  ['Run right', 'rightward travel cycle', 'row-1', 'play-8'],
+  ['Run left', 'leftward travel cycle', 'row-2', 'play-8'],
+  ['Wave', 'greeting gesture', 'row-3', 'play-4'],
+  ['Jump', 'anticipation and lift', 'row-4', 'play-5'],
+  ['Failed', 'deflated reaction', 'row-5', 'play-8'],
+  ['Waiting', 'patient idle variant', 'row-6', 'play-6'],
+  ['Running', 'in-place dash loop', 'row-7', 'play-6'],
+  ['Review', 'focused inspection', 'row-8', 'play-6'],
+]
 
 function App() {
   const [config, setConfig] = useState<ConfigState | null>(null)
@@ -129,6 +143,37 @@ function App() {
     }
   }
 
+  function renderFrame(sheet: string, className: string) {
+    return <div className={`atlas-frame ${className}`} style={{ backgroundImage: `url(${sheet})` }} />
+  }
+
+  function renderTemplateArt(templateId: string) {
+    if (templateId === 'sandorm') {
+      return (
+        <div className="animation-grid">
+          {sandwormAnimations.map(([name, description, rowClass, playClass]) => (
+            <div className="animation-tile" key={name}>
+              {renderFrame(sandwormSheet, `${rowClass} ${playClass}`)}
+              <div>
+                <strong>{name}</strong>
+                <span>{description}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )
+    }
+
+    return (
+      <div className="octopus-preview">
+        <div className="octopus-stills">
+          {renderFrame(octopusSheet, 'row-0 col-0 still')}
+          {renderFrame(octopusSheet, 'row-8 col-3 still')}
+        </div>
+      </div>
+    )
+  }
+
   if (path === '/success') {
     return (
       <main className="page success-page">
@@ -205,11 +250,9 @@ function App() {
           </p>
         </div>
         <div className="hero-preview" aria-label="Template preview">
-          <div className="pixel-stage">
-            <div className="sandorm-sprite" />
-            <div className="jar-sprite">
-              <span />
-            </div>
+          <div className="hero-sprite-stage">
+            {renderFrame(sandwormSheet, 'row-1 play-8 hero-frame')}
+            {renderFrame(octopusSheet, 'row-0 col-0 still hero-frame')}
           </div>
         </div>
       </section>
@@ -221,15 +264,9 @@ function App() {
           const isLoading = loadingTemplateId === template.id
 
           return (
-            <article className="template-card" key={template.id}>
+            <article className={`template-card ${template.id}`} key={template.id}>
               <div className={`template-art ${template.id}`}>
-                {template.id === 'sandorm' ? (
-                  <div className="sandorm-sprite" />
-                ) : (
-                  <div className="jar-sprite">
-                    <span />
-                  </div>
-                )}
+                {renderTemplateArt(template.id)}
               </div>
               <div className="template-copy">
                 <p>{template.id === 'sandorm' ? 'desert-pixel' : 'aquatic-pixel'}</p>
