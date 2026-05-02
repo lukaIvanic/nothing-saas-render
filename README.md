@@ -1,11 +1,12 @@
-# Codex Pet Templates
+# Premium Codex Pets
 
-A tiny Stripe-powered template shop for two hardcoded Codex pet downloads:
+A tiny Stripe-powered template shop for three hardcoded Codex pet downloads:
 
 - Sandworm Larva
+- Noir Detective Goldfish
 - Oracle Octopus Jar
 
-Each template has its own one-time `$5 USD` Stripe Checkout price.
+Each template has its own one-time Stripe Checkout price.
 
 ## Run Locally
 
@@ -23,6 +24,7 @@ Set these environment variables:
 
 - `STRIPE_SECRET_KEY`
 - `SANDORM_PRICE_ID`
+- `GOLDFISH_PRICE_ID`
 - `OCTOPUS_JAR_PRICE_ID`
 - `CLIENT_URL`, using the public app URL in production
 
@@ -31,6 +33,7 @@ Set these environment variables:
 The paid ZIPs must live in `private-downloads/`, not in `public/` or `src/assets/`:
 
 - `private-downloads/sandorm-template.zip`
+- `private-downloads/goldfish-template.zip`
 - `private-downloads/octopus-in-a-jar-template.zip`
 
 The server checks Stripe for a paid Checkout Session before streaming a file from

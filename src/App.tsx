@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import goldfishSheet from './assets/noir-detective-goldfish-spritesheet.webp'
 import octopusSheet from './assets/oracle-octopus-jar-spritesheet.webp'
 import sandwormSheet from './assets/sandworm-larva-spritesheet.webp'
 import './App.css'
@@ -27,16 +28,34 @@ type PurchasedTemplate = {
   fileReady: boolean
 }
 
-const sandwormAnimations = [
-  ['Idle', 'idle breathing loop', 'row-0', 'play-6'],
-  ['Run right', 'rightward travel cycle', 'row-1', 'play-8'],
-  ['Run left', 'leftward travel cycle', 'row-2', 'play-8'],
-  ['Wave', 'greeting gesture', 'row-3', 'play-4'],
-  ['Jump', 'anticipation and lift', 'row-4', 'play-5'],
-  ['Failed', 'deflated reaction', 'row-5', 'play-8'],
-  ['Waiting', 'patient idle variant', 'row-6', 'play-6'],
-  ['Running', 'in-place dash loop', 'row-7', 'play-6'],
-  ['Review', 'focused inspection', 'row-8', 'play-6'],
+type SpriteFrame = {
+  row: number
+  col: number
+}
+
+type Preview = {
+  frames: SpriteFrame[]
+  sheet: string
+}
+
+const atlasRows = [
+  { label: 'Idle', row: 0, frames: 6 },
+  { label: 'Run right', row: 1, frames: 8 },
+  { label: 'Run left', row: 2, frames: 8 },
+  { label: 'Wave', row: 3, frames: 4 },
+  { label: 'Jump', row: 4, frames: 5 },
+  { label: 'Failed', row: 5, frames: 8 },
+  { label: 'Waiting', row: 6, frames: 6 },
+  { label: 'Running', row: 7, frames: 6 },
+  { label: 'Review', row: 8, frames: 6 },
+]
+
+const sandwormSequence = atlasRows.flatMap(({ row, frames }) =>
+  Array.from({ length: frames }, (_, col) => ({ row, col })),
+)
+const calmSequence = [
+  { row: 0, col: 0 },
+  { row: 8, col: 3 },
 ]
 
 function App() {
@@ -46,6 +65,8 @@ function App() {
   const [purchasedTemplate, setPurchasedTemplate] = useState<PurchasedTemplate | null>(null)
   const [error, setError] = useState('')
   const [downloadStatus, setDownloadStatus] = useState('')
+  const [sandwormFrame, setSandwormFrame] = useState(0)
+  const [calmFrame, setCalmFrame] = useState(0)
   const path = window.location.pathname
   const sessionId = new URLSearchParams(window.location.search).get('session_id')
   const [isVerifying, setIsVerifying] = useState(path === '/success' && Boolean(sessionId))
@@ -85,6 +106,22 @@ function App() {
       .finally(() => setIsVerifying(false))
   }, [path, sessionId])
 
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setSandwormFrame((frame) => (frame + 1) % sandwormSequence.length)
+    }, 180)
+
+    return () => window.clearInterval(timer)
+  }, [])
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setCalmFrame((frame) => (frame + 1) % calmSequence.length)
+    }, 1400)
+
+    return () => window.clearInterval(timer)
+  }, [])
+
   async function downloadTemplate(template: PurchasedTemplate) {
     if (!sessionId) {
       setError('Missing Checkout session.')
@@ -107,7 +144,11 @@ function App() {
       const link = document.createElement('a')
       link.href = url
       link.download =
-        template.id === 'sandorm' ? 'sandworm-larva-template.zip' : 'oracle-octopus-jar-template.zip'
+        template.id === 'sandorm'
+          ? 'sandworm-larva-template.zip'
+          : template.id === 'goldfish'
+            ? 'noir-detective-goldfish-template.zip'
+            : 'oracle-octopus-jar-template.zip'
       document.body.appendChild(link)
       link.click()
       link.remove()
@@ -143,33 +184,46 @@ function App() {
     }
   }
 
-  function renderFrame(sheet: string, className: string) {
-    return <div className={`atlas-frame ${className}`} style={{ backgroundImage: `url(${sheet})` }} />
+  function renderFrame(sheet: string, frame: SpriteFrame, className = '') {
+    return (
+      <div
+        className={`atlas-frame ${className}`}
+        style={{
+          backgroundImage: `url(${sheet})`,
+          backgroundPosition: `-${frame.col * 192}px -${frame.row * 208}px`,
+        }}
+      />
+    )
+  }
+
+  function getPreview(templateId: string): Preview {
+    if (templateId === 'sandorm') {
+      const activeFrame = sandwormSequence[sandwormFrame]
+      return {
+        frames: [activeFrame],
+        sheet: sandwormSheet,
+      }
+    }
+
+    if (templateId === 'goldfish') {
+      return {
+        frames: [calmSequence[calmFrame]],
+        sheet: goldfishSheet,
+      }
+    }
+
+    return {
+      frames: [calmSequence[calmFrame]],
+      sheet: octopusSheet,
+    }
   }
 
   function renderTemplateArt(templateId: string) {
-    if (templateId === 'sandorm') {
-      return (
-        <div className="animation-grid">
-          {sandwormAnimations.map(([name, description, rowClass, playClass]) => (
-            <div className="animation-tile" key={name}>
-              {renderFrame(sandwormSheet, `${rowClass} ${playClass}`)}
-              <div>
-                <strong>{name}</strong>
-                <span>{description}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      )
-    }
+    const preview = getPreview(templateId)
 
     return (
-      <div className="octopus-preview">
-        <div className="octopus-stills">
-          {renderFrame(octopusSheet, 'row-0 col-0 still')}
-          {renderFrame(octopusSheet, 'row-8 col-3 still')}
-        </div>
+      <div className="single-preview">
+        {renderFrame(preview.sheet, preview.frames[0], 'card-frame')}
       </div>
     )
   }
@@ -231,14 +285,11 @@ function App() {
     <main className="page">
       <header className="topbar">
         <a className="brand" href="/">
-          <span className="brand-mark">cp</span>
-          <span>Codex Pet Templates</span>
+          <span className="brand-mark" aria-hidden="true">
+            {renderFrame(sandwormSheet, { row: 0, col: 0 }, 'brand-mascot-frame')}
+          </span>
+          <span>Premium Codex Pets</span>
         </a>
-        <span className={config?.configured ? 'pill ready' : 'pill'}>
-          {config?.configured
-            ? `Stripe ${config.mode === 'live' ? 'live' : 'test'} mode ready`
-            : 'Stripe setup needed'}
-        </span>
       </header>
 
       <section className="hero">
@@ -246,13 +297,14 @@ function App() {
           <p className="eyebrow">Pixel companion templates</p>
           <h1>Download tiny pets for Codex.</h1>
           <p className="lede">
-            Two handpicked pet templates, each unlocked by its own one-time Stripe Checkout payment.
+            Three handpicked pet templates, each with its own unique personality.
           </p>
         </div>
         <div className="hero-preview" aria-label="Template preview">
           <div className="hero-sprite-stage">
-            {renderFrame(sandwormSheet, 'row-1 play-8 hero-frame')}
-            {renderFrame(octopusSheet, 'row-0 col-0 still hero-frame')}
+            {renderFrame(sandwormSheet, { row: 0, col: 0 }, 'hero-frame')}
+            {renderFrame(goldfishSheet, { row: 0, col: 0 }, 'hero-frame')}
+            {renderFrame(octopusSheet, { row: 0, col: 0 }, 'hero-frame')}
           </div>
         </div>
       </section>
@@ -269,7 +321,6 @@ function App() {
                 {renderTemplateArt(template.id)}
               </div>
               <div className="template-copy">
-                <p>{template.id === 'sandorm' ? 'desert-pixel' : 'aquatic-pixel'}</p>
                 <h2>{template.name}</h2>
                 <span>{template.tagline}</span>
               </div>

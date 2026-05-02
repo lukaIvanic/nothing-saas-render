@@ -25,6 +25,14 @@ const templates = [
     fileName: 'sandorm-template.zip',
   },
   {
+    id: 'goldfish',
+    name: 'Noir Detective Goldfish',
+    tagline: 'A floating noir detective goldfish in a bowl, with tiny coat-and-fedora energy.',
+    price: '$3',
+    priceId: process.env.GOLDFISH_PRICE_ID,
+    fileName: 'goldfish-template.zip',
+  },
+  {
     id: 'octopus-jar',
     name: 'Oracle Octopus Jar',
     tagline: 'A tiny prophetic octopus inside a glass jar with sticky notes.',
