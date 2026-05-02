@@ -14,6 +14,7 @@ dist-ssr
 .env
 .env.*
 !.env.example
+private-downloads/*.zip
 
 # Editor directories and files
 .vscode/*

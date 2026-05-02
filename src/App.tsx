@@ -4,31 +4,81 @@ import './App.css'
 type ConfigState = {
   configured: boolean
   mode: 'test' | 'live' | 'missing'
+  templates: Array<{
+    id: string
+    configured: boolean
+    fileReady: boolean
+  }>
+}
+
+type Template = {
+  id: string
+  name: string
+  tagline: string
+  price: string
+}
+
+type PurchasedTemplate = {
+  id: string
+  name: string
+  price: string
+  fileReady: boolean
 }
 
 function App() {
   const [config, setConfig] = useState<ConfigState | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [templates, setTemplates] = useState<Template[]>([])
+  const [loadingTemplateId, setLoadingTemplateId] = useState('')
+  const [purchasedTemplate, setPurchasedTemplate] = useState<PurchasedTemplate | null>(null)
   const [error, setError] = useState('')
   const path = window.location.pathname
+  const sessionId = new URLSearchParams(window.location.search).get('session_id')
+  const [isVerifying, setIsVerifying] = useState(path === '/success' && Boolean(sessionId))
 
   useEffect(() => {
     fetch('/api/config')
       .then((response) => response.json())
       .then(setConfig)
       .catch(() => {
-        setConfig({ configured: false, mode: 'missing' })
+        setConfig({ configured: false, mode: 'missing', templates: [] })
       })
+
+    fetch('/api/templates')
+      .then((response) => response.json())
+      .then((data) => setTemplates(data.templates || []))
+      .catch(() => setTemplates([]))
   }, [])
 
-  async function startCheckout() {
-    setIsLoading(true)
+  useEffect(() => {
+    if (path !== '/success' || !sessionId) {
+      return
+    }
+
+    fetch(`/api/checkout-session/${sessionId}`)
+      .then(async (response) => {
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Payment could not be verified.')
+        }
+
+        setPurchasedTemplate(data.template)
+      })
+      .catch((verifyError) => {
+        setError(verifyError instanceof Error ? verifyError.message : 'Payment could not be verified.')
+      })
+      .finally(() => setIsVerifying(false))
+  }, [path, sessionId])
+
+  async function startCheckout(templateId: string) {
+    setLoadingTemplateId(templateId)
     setError('')
 
     try {
       const response = await fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ templateId }),
       })
       const data = await response.json()
 
@@ -36,11 +86,11 @@ function App() {
         throw new Error(data.error || 'Checkout is unavailable.')
       }
 
-      window.location.href = data.url
+      window.location.assign(data.url)
     } catch (checkoutError) {
       setError(checkoutError instanceof Error ? checkoutError.message : 'Checkout is unavailable.')
     } finally {
-      setIsLoading(false)
+      setLoadingTemplateId('')
     }
   }
 
@@ -49,12 +99,31 @@ function App() {
       <main className="page success-page">
         <section className="status-panel">
           <p className="eyebrow">Payment accepted</p>
-          <h1>You now own Nothing Pro.</h1>
-          <p className="lede">
-            The product does exactly nothing, but the one-time checkout flow did the important part.
-          </p>
+          <h1>Your template is unlocked.</h1>
+          {isVerifying && <p className="lede">Checking Stripe before opening the download.</p>}
+          {purchasedTemplate && (
+            <>
+              <p className="lede">
+                {purchasedTemplate.name} is ready for this paid Checkout session.
+              </p>
+              {purchasedTemplate.fileReady ? (
+                <a
+                  className="secondary-link"
+                  href={`/api/download/${purchasedTemplate.id}?session_id=${sessionId}`}
+                >
+                  Download {purchasedTemplate.name}
+                </a>
+              ) : (
+                <p className="notice">
+                  The payment is verified, but the ZIP has not been uploaded to the private downloads
+                  folder yet.
+                </p>
+              )}
+            </>
+          )}
+          {error && <p className="error">{error}</p>}
           <a className="secondary-link" href="/">
-            Back to the app
+            Back to gallery
           </a>
         </section>
       </main>
@@ -69,7 +138,7 @@ function App() {
           <h1>No charge was made.</h1>
           <p className="lede">You can return to the landing page and try the payment flow again.</p>
           <a className="secondary-link" href="/">
-            Back to the app
+            Back to gallery
           </a>
         </section>
       </main>
@@ -78,51 +147,70 @@ function App() {
 
   return (
     <main className="page">
+      <header className="topbar">
+        <a className="brand" href="/">
+          <span className="brand-mark">cp</span>
+          <span>Codex Pet Templates</span>
+        </a>
+        <span className={config?.configured ? 'pill ready' : 'pill'}>
+          {config?.configured
+            ? `Stripe ${config.mode === 'live' ? 'live' : 'test'} mode ready`
+            : 'Stripe setup needed'}
+        </span>
+      </header>
+
       <section className="hero">
         <div className="hero-copy">
-          <p className="eyebrow">Nothing SaaS</p>
-          <h1>Pay once for absolutely nothing.</h1>
+          <p className="eyebrow">Pixel companion templates</p>
+          <h1>Download tiny pets for Codex.</h1>
           <p className="lede">
-            A deliberately empty app for proving that the one-time payment plumbing works.
+            Two handpicked pet templates, each unlocked by its own one-time Stripe Checkout payment.
           </p>
-          <div className="actions">
-            <button type="button" onClick={startCheckout} disabled={isLoading}>
-              {isLoading ? 'Opening checkout...' : 'Buy for EUR 5'}
-            </button>
-            <span className={config?.configured ? 'pill ready' : 'pill'}>
-              {config?.configured
-                ? `Stripe ${config.mode === 'live' ? 'live' : 'test'} mode ready`
-                : 'Stripe keys needed'}
-            </span>
-          </div>
-          {error && <p className="error">{error}</p>}
         </div>
-        <div className="receipt" aria-label="Subscription summary">
-          <div className="receipt-row">
-            <span>Plan</span>
-            <strong>Nothing Pass</strong>
-          </div>
-          <div className="receipt-row">
-            <span>Delivery</span>
-            <strong>Never</strong>
-          </div>
-          <div className="receipt-row total">
-            <span>Total</span>
-            <strong>EUR 5 once</strong>
+        <div className="hero-preview" aria-label="Template preview">
+          <div className="pixel-stage">
+            <div className="sandorm-sprite" />
+            <div className="jar-sprite">
+              <span />
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="setup-strip">
-        <div>
-          <h2>Local Stripe test flow</h2>
-          <p>Set a Stripe price and secret key in the hosting environment, then use Checkout to pay.</p>
-        </div>
-        <div>
-          <h2>What the app stores</h2>
-          <p>Nothing yet. This version redirects to Checkout and confirms success via the return URL.</p>
-        </div>
+      <section className="gallery" aria-label="Pet template gallery">
+        {templates.map((template) => {
+          const templateStatus = config?.templates.find((item) => item.id === template.id)
+          const canBuy = Boolean(templateStatus?.configured)
+          const isLoading = loadingTemplateId === template.id
+
+          return (
+            <article className="template-card" key={template.id}>
+              <div className={`template-art ${template.id}`}>
+                {template.id === 'sandorm' ? (
+                  <div className="sandorm-sprite" />
+                ) : (
+                  <div className="jar-sprite">
+                    <span />
+                  </div>
+                )}
+              </div>
+              <div className="template-copy">
+                <p>{template.id === 'sandorm' ? 'desert-pixel' : 'aquatic-pixel'}</p>
+                <h2>{template.name}</h2>
+                <span>{template.tagline}</span>
+              </div>
+              <div className="template-actions">
+                <strong>{template.price}</strong>
+                <button type="button" onClick={() => startCheckout(template.id)} disabled={!canBuy || isLoading}>
+                  {isLoading ? 'Opening...' : 'Buy template'}
+                </button>
+              </div>
+            </article>
+          )
+        })}
       </section>
+
+      {error && <p className="error page-error">{error}</p>}
     </main>
   )
 }
