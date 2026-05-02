@@ -31,6 +31,7 @@ function App() {
   const [loadingTemplateId, setLoadingTemplateId] = useState('')
   const [purchasedTemplate, setPurchasedTemplate] = useState<PurchasedTemplate | null>(null)
   const [error, setError] = useState('')
+  const [downloadStatus, setDownloadStatus] = useState('')
   const path = window.location.pathname
   const sessionId = new URLSearchParams(window.location.search).get('session_id')
   const [isVerifying, setIsVerifying] = useState(path === '/success' && Boolean(sessionId))
@@ -70,6 +71,40 @@ function App() {
       .finally(() => setIsVerifying(false))
   }, [path, sessionId])
 
+  async function downloadTemplate(template: PurchasedTemplate) {
+    if (!sessionId) {
+      setError('Missing Checkout session.')
+      return
+    }
+
+    setError('')
+    setDownloadStatus('Preparing download...')
+
+    try {
+      const response = await fetch(`/api/download/${template.id}?session_id=${sessionId}`)
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
+        throw new Error(data.error || 'Download failed.')
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download =
+        template.id === 'sandorm' ? 'sandworm-larva-template.zip' : 'oracle-octopus-jar-template.zip'
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+      setDownloadStatus('Download started. Check your browser downloads if it is not visible.')
+    } catch (downloadError) {
+      setError(downloadError instanceof Error ? downloadError.message : 'Download failed.')
+      setDownloadStatus('')
+    }
+  }
+
   async function startCheckout(templateId: string) {
     setLoadingTemplateId(templateId)
     setError('')
@@ -107,12 +142,13 @@ function App() {
                 {purchasedTemplate.name} is ready for this paid Checkout session.
               </p>
               {purchasedTemplate.fileReady ? (
-                <a
+                <button
+                  type="button"
                   className="secondary-link"
-                  href={`/api/download/${purchasedTemplate.id}?session_id=${sessionId}`}
+                  onClick={() => downloadTemplate(purchasedTemplate)}
                 >
                   Download {purchasedTemplate.name}
-                </a>
+                </button>
               ) : (
                 <p className="notice">
                   The payment is verified, but the ZIP has not been uploaded to the private downloads
@@ -121,6 +157,7 @@ function App() {
               )}
             </>
           )}
+          {downloadStatus && <p className="notice">{downloadStatus}</p>}
           {error && <p className="error">{error}</p>}
           <a className="secondary-link" href="/">
             Back to gallery
