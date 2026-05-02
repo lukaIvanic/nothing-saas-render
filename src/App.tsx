@@ -56,16 +56,10 @@ const sandwormSequence = atlasRows.flatMap(({ row, frames }) =>
 const goldfishSequence = [
   { row: 0, col: 0 },
   { row: 1, col: 0 },
-  { row: 2, col: 0 },
-  { row: 3, col: 3 },
 ]
 const octopusSequence = [
   { row: 0, col: 0 },
-  { row: 5, col: 3 },
-  { row: 5, col: 7 },
-  { row: 5, col: 4 },
-  { row: 7, col: 5 },
-  { row: 0, col: 3 },
+  { row: 8, col: 3 },
 ]
 
 function App() {
