@@ -35,7 +35,7 @@ const templates = [
   {
     id: 'octopus-jar',
     name: 'Oracle Octopus Jar',
-    tagline: 'A tiny prophetic octopus inside a glass jar with sticky notes.',
+    tagline: 'A tiny prophetic octopus inside a glass jar with sticky notes. Super cute!!',
     price: '$8',
     priceId: process.env.OCTOPUS_JAR_PRICE_ID,
     fileName: 'octopus-in-a-jar-template.zip',
