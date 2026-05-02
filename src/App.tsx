@@ -53,9 +53,19 @@ const atlasRows = [
 const sandwormSequence = atlasRows.flatMap(({ row, frames }) =>
   Array.from({ length: frames }, (_, col) => ({ row, col })),
 )
-const calmSequence = [
+const goldfishSequence = [
   { row: 0, col: 0 },
-  { row: 8, col: 3 },
+  { row: 1, col: 0 },
+  { row: 2, col: 0 },
+  { row: 3, col: 3 },
+]
+const octopusSequence = [
+  { row: 0, col: 0 },
+  { row: 5, col: 3 },
+  { row: 5, col: 7 },
+  { row: 5, col: 4 },
+  { row: 7, col: 5 },
+  { row: 0, col: 3 },
 ]
 
 function App() {
@@ -66,7 +76,8 @@ function App() {
   const [error, setError] = useState('')
   const [downloadStatus, setDownloadStatus] = useState('')
   const [sandwormFrame, setSandwormFrame] = useState(0)
-  const [calmFrame, setCalmFrame] = useState(0)
+  const [goldfishFrame, setGoldfishFrame] = useState(0)
+  const [octopusFrame, setOctopusFrame] = useState(0)
   const path = window.location.pathname
   const sessionId = new URLSearchParams(window.location.search).get('session_id')
   const [isVerifying, setIsVerifying] = useState(path === '/success' && Boolean(sessionId))
@@ -116,7 +127,8 @@ function App() {
 
   useEffect(() => {
     const timer = window.setInterval(() => {
-      setCalmFrame((frame) => (frame + 1) % calmSequence.length)
+      setGoldfishFrame((frame) => (frame + 1) % goldfishSequence.length)
+      setOctopusFrame((frame) => (frame + 1) % octopusSequence.length)
     }, 1400)
 
     return () => window.clearInterval(timer)
@@ -207,13 +219,13 @@ function App() {
 
     if (templateId === 'goldfish') {
       return {
-        frames: [calmSequence[calmFrame]],
+        frames: [goldfishSequence[goldfishFrame]],
         sheet: goldfishSheet,
       }
     }
 
     return {
-      frames: [calmSequence[calmFrame]],
+      frames: [octopusSequence[octopusFrame]],
       sheet: octopusSheet,
     }
   }
